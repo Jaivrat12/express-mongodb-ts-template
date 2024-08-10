@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { MongoServerError } from 'mongodb';
 import createHttpError from 'http-errors';
 import HTTPStatusCodes from '../enums/HTTPStatusCodes.js';
+import logger from '../utils/logger.js';
 
 interface ErrorResponse {
     message: string;
@@ -13,6 +14,7 @@ interface ErrorResponse {
 
 // function mongodbErrorHandler() {}
 
+// TODO: break this handler into smaller handlers
 export default function globalErrorHandler(
     error: unknown,
     req: Request,
@@ -36,12 +38,12 @@ export default function globalErrorHandler(
 
         res.status(HTTPStatusCodes.BadRequest).json(errRes);
     } else if (error instanceof MongoServerError && error.code === 11000) {
+        // TODO: handle in UserModel
         res.status(HTTPStatusCodes.BadRequest).json({
             message: `${Object.keys(error.keyPattern)[0]} already exists`,
         });
     } else {
-        // TODO: async logger
-        console.log(error);
+        logger.error(error);
         res.status(HTTPStatusCodes.InternalServerError).json({
             message: 'Something went wrong'
         });
